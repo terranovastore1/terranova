@@ -3,7 +3,6 @@ import type { CategoryMeta, Product, ProductCategory } from '../types/product';
 export const STORE_CONFIG = {
   whatsapp: '628967198609',
   whatsappLink: 'https://wa.me/628967198609',
-  group: 'https://chat.whatsapp.com/BielVf93ytvLI20G5amjjp?s=cl&p=a&mlu=4&ilr=4',
   instagram: 'https://www.instagram.com/_terranovastore/',
   tiktok: 'https://www.tiktok.com/@_terranovastore',
 };

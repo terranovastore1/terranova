@@ -14,10 +14,12 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    assetsDir: 'bundle',
+  },
   server: {
     port: 3000,
     host: '0.0.0.0',
     hmr: false,
-    allowedHosts: true,
   },
 });

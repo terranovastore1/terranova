@@ -20,9 +20,6 @@ export const IntroAnimation: React.FC = () => {
     } catch {
       // Ignore sessionStorage errors
     }
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return false;
-    }
     return true;
   });
 
@@ -33,23 +30,24 @@ export const IntroAnimation: React.FC = () => {
   const spaceLayers = useMemo(() => {
     if (!shouldRender || typeof window === 'undefined') return null;
     const isMobileScreen = window.innerWidth <= 768;
-    if (isMobileScreen) return null;
 
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+    const w = Math.max(window.innerWidth, 360);
+    const smallCount = isMobileScreen ? 65 : 95;
+    const cosmosCount = isMobileScreen ? 50 : 75;
+
     const introStars = generateStarShadow(
-      90,
+      smallCount,
       w,
-      h,
-      () => `rgba(255,255,255,${(0.4 + Math.random() * 0.4).toFixed(2)})`
+      2000,
+      () => `rgba(255,255,255,${(0.45 + Math.random() * 0.45).toFixed(2)})`
     );
     const cosmosStars = generateStarShadow(
-      70,
+      cosmosCount,
       w,
-      h,
-      () => `rgba(34,211,238,${(0.5 + Math.random() * 0.45).toFixed(2)}) 0 0 1px`
+      1400,
+      () => `rgba(34,211,238,${(0.55 + Math.random() * 0.45).toFixed(2)}) 0 0 1px`
     );
-    return { introStars, cosmosStars, tile: h };
+    return { introStars, cosmosStars };
   }, [shouldRender]);
 
   const endIntro = useCallback(() => {
@@ -105,16 +103,10 @@ export const IntroAnimation: React.FC = () => {
           <>
             <div className="galaxy-nebula n1" />
             <div className="galaxy-nebula n2" />
-            <div
-              className="star-layer"
-              style={
-                {
-                  '--star-shadow': spaceLayers.introStars,
-                  '--star-tile': `${spaceLayers.tile}px`,
-                  animationDuration: '35s',
-                } as React.CSSProperties
-              }
-            />
+            <div className="star-layer star-layer-intro-bg">
+              <div className="star-points" style={{ boxShadow: spaceLayers.introStars }} />
+              <div className="star-points star-points-clone-slow" style={{ boxShadow: spaceLayers.introStars }} />
+            </div>
           </>
         )}
       </div>
@@ -237,16 +229,10 @@ export const IntroAnimation: React.FC = () => {
         <div className="deep-space-cosmos" id="introCosmos" aria-hidden="true">
           {spaceLayers && (
             <>
-              <div
-                className="star-layer"
-                style={
-                  {
-                    '--star-shadow': spaceLayers.cosmosStars,
-                    '--star-tile': `${spaceLayers.tile}px`,
-                    animationDuration: '25s',
-                  } as React.CSSProperties
-                }
-              />
+              <div className="star-layer star-layer-intro-cosmos">
+                <div className="star-points" style={{ boxShadow: spaceLayers.cosmosStars }} />
+                <div className="star-points star-points-clone-fast" style={{ boxShadow: spaceLayers.cosmosStars }} />
+              </div>
               <div className="meteor m1" />
               <div className="meteor m2" />
             </>

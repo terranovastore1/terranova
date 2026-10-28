@@ -198,50 +198,64 @@ main, section, footer, .category-hero, .top-header-banner, .floating-order-btn, 
   left: 0;
   width: 2px;
   height: 2px;
-  border-radius: 50%;
-  box-shadow: var(--star-shadow, none);
-  animation-name: starDrift;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
+  will-change: transform;
 }
 
-.star-layer::after {
-  content: "";
+.star-points {
   position: absolute;
-  top: var(--star-tile, 2000px);
+  top: 0;
   left: 0;
   width: 2px;
   height: 2px;
   border-radius: 50%;
-  box-shadow: var(--star-shadow, none);
 }
 
-@keyframes starDrift {
-  from { transform: translateY(0); }
-  to { transform: translateY(calc(-1 * var(--star-tile, 2000px))); }
+.star-points-clone-slow {
+  top: 2000px;
 }
 
-/* Meteor/shooting star: hanya terlihat sekilas (2%-10% dari durasi animasi),
-   lalu "diam" cukup lama sebelum muncul lagi -> kesan "sesekali", bukan
-   terus-menerus.
+.star-points-clone-fast {
+  top: 1400px;
+}
 
-   PENTING soal arah: dulu sudut ekor (rotate 180deg di ::before) dan sudut
-   badan meteor (rotate -35deg di keyframe) ditulis terpisah dan TIDAK
-   dihitung dari arah translate-nya - hasilnya ekor menunjuk ke arah yang
-   beda ~70 derajat dari arah dia terbang (makanya kelihatan "lucu"/salah).
+.star-layer-slow {
+  animation: starDriftSlow 135s linear infinite;
+}
 
-   Sekarang setiap meteor cuma butuh 2 variabel: --m-dx/--m-dy (arah & jarak
-   terbang) dan --m-tail-angle (dihitung manual = arah terbang + 180 derajat,
-   supaya ekornya persis menunjuk ke belakang, berlawanan arah gerak). */
+.star-layer-fast {
+  animation: starDriftFast 88s linear infinite;
+}
+
+.star-layer-intro-bg {
+  animation: starDriftSlow 35s linear infinite;
+}
+
+.star-layer-intro-cosmos {
+  animation: starDriftFast 25s linear infinite;
+}
+
+@keyframes starDriftSlow {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(0, -2000px, 0); }
+}
+
+@keyframes starDriftFast {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(0, -1400px, 0); }
+}
+
+/* Meteor/shooting star dengan GPU-accelerated translate3d agar selalu muncul
+   dan jatuh mulus di desktop maupun mobile browser/WebView. */
 .meteor {
   position: absolute;
-  width: var(--m-size, 3px);
-  height: var(--m-size, 3px);
+  width: 3px;
+  height: 3px;
   border-radius: 50%;
-  background: #fff;
+  background: #ffffff;
   opacity: 0;
-  box-shadow: 0 0 6px rgba(255, 255, 255, var(--m-glow, 0.8)),
-    0 0 14px rgba(255, 255, 255, calc(var(--m-glow, 0.8) * 0.5));
+  will-change: transform, opacity;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.85),
+    0 0 14px rgba(34, 211, 238, 0.55);
 }
 
 .meteor::before {
@@ -249,92 +263,109 @@ main, section, footer, .category-hero, .top-header-banner, .floating-order-btn, 
   position: absolute;
   top: 50%;
   left: 50%;
-  width: var(--m-tail, 100px);
-  height: 1.5px;
-  /* Terang tepat di kepala (kiri, titik jangkar), pudar makin jauh ke ekor */
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0));
-  transform-origin: left center; /* pivot rotasi persis di titik kepala meteor */
-  transform: translateY(-50%) rotate(var(--m-tail-angle, 215deg));
+  width: 105px;
+  height: 1.6px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.95), rgba(34, 211, 238, 0.35) 45%, rgba(255, 255, 255, 0));
+  transform-origin: left center;
+  transform: translateY(-50%) rotate(215deg);
 }
 
-/* Tiap meteor: posisi awal, arah+jarak terbang (--m-dx/--m-dy), sudut ekor
-   yang sudah dihitung pas (arah terbang + 180deg), panjang ekor, kecepatan,
-   dan delay biar tidak muncul bersamaan. m4 dibuat sedikit lebih kecil &
-   redup supaya terasa seperti meteor yang lebih jauh (variasi kedalaman). */
 .meteor.m1 {
   top: 6%;
   left: 10%;
-  --m-dx: 311px;
-  --m-dy: 218px; /* arah ~35deg */
-  --m-tail-angle: 215deg; /* 35 + 180 */
-  --m-tail: 105px;
-  animation: meteorFly 9s linear infinite;
-  animation-delay: 0.5s;
+  animation: meteorFly1 8.5s linear infinite;
+  animation-delay: 0.4s;
+}
+.meteor.m1::before {
+  width: 105px;
+  transform: translateY(-50%) rotate(215deg);
 }
 
 .meteor.m2 {
-  top: 24%;
-  left: 60%;
-  --m-dx: 228px;
-  --m-dy: 253px; /* arah ~48deg */
-  --m-tail-angle: 228deg; /* 48 + 180 */
-  --m-tail: 80px;
-  animation: meteorFly 11s linear infinite;
-  animation-delay: 3.5s;
+  top: 22%;
+  left: 58%;
+  animation: meteorFly2 10.5s linear infinite;
+  animation-delay: 3.2s;
+}
+.meteor.m2::before {
+  width: 85px;
+  transform: translateY(-50%) rotate(228deg);
 }
 
 .meteor.m3 {
-  top: 3%;
-  left: 35%;
-  --m-dx: 389px;
-  --m-dy: 157px; /* arah ~22deg, lebih landai */
-  --m-tail-angle: 202deg; /* 22 + 180 */
-  --m-tail: 115px;
-  animation: meteorFly 14s linear infinite;
-  animation-delay: 7s;
+  top: 4%;
+  left: 34%;
+  animation: meteorFly3 13s linear infinite;
+  animation-delay: 6.2s;
+}
+.meteor.m3::before {
+  width: 115px;
+  transform: translateY(-50%) rotate(202deg);
 }
 
 .meteor.m4 {
   top: 32%;
-  left: 80%;
-  --m-size: 2px;
-  --m-glow: 0.55;
-  --m-dx: 172px;
-  --m-dy: 246px; /* arah ~55deg, lebih curam */
-  --m-tail-angle: 235deg; /* 55 + 180 */
-  --m-tail: 65px;
-  animation: meteorFly 10s linear infinite;
-  animation-delay: 1.6s;
+  left: 72%;
+  width: 2.5px;
+  height: 2.5px;
+  animation: meteorFly4 9.5s linear infinite;
+  animation-delay: 1.8s;
+}
+.meteor.m4::before {
+  width: 70px;
+  transform: translateY(-50%) rotate(235deg);
 }
 
-@keyframes meteorFly {
-  0% { opacity: 0; transform: translate(0, 0); }
+@keyframes meteorFly1 {
+  0% { opacity: 0; transform: translate3d(0, 0, 0); }
   2% { opacity: 1; }
-  9% { opacity: 0; transform: translate(var(--m-dx, 320px), var(--m-dy, 220px)); }
-  100% { opacity: 0; transform: translate(var(--m-dx, 320px), var(--m-dy, 220px)); }
+  10% { opacity: 0; transform: translate3d(311px, 218px, 0); }
+  100% { opacity: 0; transform: translate3d(311px, 218px, 0); }
+}
+
+@keyframes meteorFly2 {
+  0% { opacity: 0; transform: translate3d(0, 0, 0); }
+  2% { opacity: 1; }
+  10% { opacity: 0; transform: translate3d(228px, 253px, 0); }
+  100% { opacity: 0; transform: translate3d(228px, 253px, 0); }
+}
+
+@keyframes meteorFly3 {
+  0% { opacity: 0; transform: translate3d(0, 0, 0); }
+  2% { opacity: 1; }
+  10% { opacity: 0; transform: translate3d(389px, 157px, 0); }
+  100% { opacity: 0; transform: translate3d(389px, 157px, 0); }
+}
+
+@keyframes meteorFly4 {
+  0% { opacity: 0; transform: translate3d(0, 0, 0); }
+  2% { opacity: 1; }
+  10% { opacity: 0; transform: translate3d(172px, 246px, 0); }
+  100% { opacity: 0; transform: translate3d(172px, 246px, 0); }
 }
 
 @media (max-width: 640px) {
-  /* Di mobile, JANGAN sembunyikan meteor/nebula. Cukup sesuaikan posisi
-     & ukuran agar tetap terlihat tanpa membebani performa. */
-  .meteor.m3 {
-    top: 2%;
-    left: 30%;
-    --m-dx: 280px;
-    --m-dy: 120px;
-    --m-tail-angle: 203deg;
-    --m-tail: 90px;
+  .meteor.m1 {
+    top: 6%;
+    left: 6%;
   }
-
+  .meteor.m2 {
+    top: 22%;
+    left: 44%;
+  }
+  .meteor.m3 {
+    top: 3%;
+    left: 18%;
+  }
+  .meteor.m3::before {
+    width: 90px;
+  }
   .meteor.m4 {
-    top: 28%;
-    left: 75%;
-    --m-size: 2px;
-    --m-glow: 0.5;
-    --m-dx: 150px;
-    --m-dy: 200px;
-    --m-tail-angle: 233deg;
-    --m-tail: 55px;
+    top: 32%;
+    left: 52%;
+  }
+  .meteor.m4::before {
+    width: 60px;
   }
 
   .galaxy-nebula.n3 {
@@ -862,12 +893,6 @@ html.intro-skip-init .intro {
     width: 76px;
     height: 76px;
     border-radius: 22px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .intro {
-    display: none !important;
   }
 }
 
@@ -3166,19 +3191,8 @@ body.page-home:has(#introScreen:not(.intro-out)) .navbar {
   html {
     scroll-behavior: auto;
   }
-  .hero-logo-wrap,
-  .hero-title,
-  .galaxy-nebula,
-  .star-layer,
-  .meteor,
-  .decor,
-  .quick-icon,
-  .category-icon,
-  .online-dot-pulse,
   .pricelist-card::after {
     animation: none !important;
-  }
-  .pricelist-card::after {
     opacity: 0 !important;
   }
   .reveal {
@@ -4224,19 +4238,10 @@ body.page-home:has(#introScreen:not(.intro-out)) .navbar {
     background: #080c1a !important;
   }
 
-  /* 3. Nonaktifkan animasi latar belakang yang memicu repainting terus-menerus */
-  .galaxy-bg .star-layer {
-    animation: none !important;
-  }
-
+  /* 3. Optimalkan blur nebula di mobile tanpa mematikan animasi bintang & meteor */
   .galaxy-bg .galaxy-nebula {
-    animation: none !important;
-    filter: blur(35px) !important;
-    opacity: 0.3 !important;
-  }
-
-  .galaxy-bg .meteor {
-    display: none !important;
+    filter: blur(42px);
+    opacity: 0.42;
   }
 
   /* 4. Kurangi beban shadow/glow berlapis */
@@ -4252,16 +4257,6 @@ body.page-home:has(#introScreen:not(.intro-out)) .navbar {
   html, body {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: none;
-  }
-
-  /* 6. Matikan elemen dekorasi animasi bergerak di hero (emoji berputar & melayang) */
-  .hero-decor {
-    display: none !important;
-  }
-
-  .hero-title {
-    animation: none !important;
-    text-shadow: 0 0 10px rgba(var(--cyan-rgb), 0.5) !important;
   }
 }
 

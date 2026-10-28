@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 export function generateStarShadow(
   count: number,
@@ -16,124 +16,75 @@ export function generateStarShadow(
 }
 
 export const GalaxyBackground: React.FC = () => {
-  const config = useMemo(() => {
-    const prefersReducedMotion =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
-    const isLowPowerDevice =
-      typeof navigator !== 'undefined' &&
-      typeof navigator.hardwareConcurrency === 'number' &&
-      navigator.hardwareConcurrency <= 4;
-    const reduceParticles = isMobile || isLowPowerDevice || prefersReducedMotion;
+  const [viewportWidth, setViewportWidth] = useState<number>(() =>
+    typeof window !== 'undefined' ? Math.max(window.innerWidth, 360) : 1440
+  );
 
-    const spreadX = Math.max(typeof window !== 'undefined' ? window.innerWidth : 1440, 1200);
+  useEffect(() => {
+    let resizeTimer: number | null = null;
+    const handleResize = () => {
+      if (resizeTimer) window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        const nextWidth = Math.max(window.innerWidth, 360);
+        setViewportWidth((prev) => (Math.abs(nextWidth - prev) > 120 ? nextWidth : prev));
+      }, 250);
+    };
+
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (resizeTimer) window.clearTimeout(resizeTimer);
+    };
+  }, []);
+
+  const stars = useMemo(() => {
+    const isCompact = viewportWidth <= 768;
+    const spreadX = Math.max(viewportWidth, 420);
     const tileSmall = 2000;
     const tileMedium = 1400;
 
-    const smallCount = isMobile ? 65 : reduceParticles ? 50 : 120;
-    const mediumCount = isMobile ? 25 : reduceParticles ? 25 : 50;
+    const smallCount = isCompact ? 95 : 135;
+    const mediumCount = isCompact ? 40 : 58;
 
     const smallStars = generateStarShadow(
       smallCount,
       spreadX,
       tileSmall,
-      () => `rgba(255,255,255,${(0.5 + Math.random() * 0.45).toFixed(2)})`
+      () => `rgba(255,255,255,${(0.55 + Math.random() * 0.45).toFixed(2)})`
     );
     const mediumStars = generateStarShadow(
       mediumCount,
       spreadX,
       tileMedium,
-      () => `rgba(34,211,238,${(0.65 + Math.random() * 0.35).toFixed(2)}) 0 0 1px`
+      () => `rgba(34,211,238,${(0.68 + Math.random() * 0.32).toFixed(2)}) 0 0 1.5px`
     );
 
     return {
-      isMobile,
-      prefersReducedMotion,
-      reduceParticles,
-      tileSmall,
-      tileMedium,
       smallStars,
       mediumStars,
     };
-  }, []);
-
-  if (config.isMobile) {
-    return (
-      <div className="galaxy-bg" aria-hidden="true">
-        <div
-          className="galaxy-nebula n1"
-          style={{ animation: 'none', filter: 'blur(40px)', opacity: 0.42 }}
-        />
-        <div
-          className="galaxy-nebula n2"
-          style={{ animation: 'none', filter: 'blur(40px)', opacity: 0.32 }}
-        />
-        <div
-          className="galaxy-nebula n3"
-          style={{ animation: 'none', filter: 'blur(40px)', opacity: 0.25 }}
-        />
-        <div
-          className="star-layer"
-          style={
-            {
-              '--star-shadow': config.smallStars,
-              '--star-tile': `${config.tileSmall}px`,
-              animation: 'none',
-            } as React.CSSProperties
-          }
-        />
-        <div
-          className="star-layer"
-          style={
-            {
-              '--star-shadow': config.mediumStars,
-              '--star-tile': `${config.tileMedium}px`,
-              animation: 'none',
-            } as React.CSSProperties
-          }
-        />
-      </div>
-    );
-  }
+  }, [viewportWidth]);
 
   return (
     <div className="galaxy-bg" aria-hidden="true">
       <div className="galaxy-nebula n1" />
       <div className="galaxy-nebula n2" />
       <div className="galaxy-nebula n3" />
-      <div
-        className="star-layer"
-        style={
-          {
-            '--star-shadow': config.smallStars,
-            '--star-tile': `${config.tileSmall}px`,
-            animationDuration: '170s',
-          } as React.CSSProperties
-        }
-      />
-      <div
-        className="star-layer"
-        style={
-          {
-            '--star-shadow': config.mediumStars,
-            '--star-tile': `${config.tileMedium}px`,
-            animationDuration: '110s',
-          } as React.CSSProperties
-        }
-      />
-      {!config.prefersReducedMotion && (
-        <>
-          <div className="meteor m1" />
-          <div className="meteor m2" />
-        </>
-      )}
-      {!config.prefersReducedMotion && !config.reduceParticles && (
-        <>
-          <div className="meteor m3" />
-          <div className="meteor m4" />
-        </>
-      )}
+
+      <div className="star-layer star-layer-slow">
+        <div className="star-points" style={{ boxShadow: stars.smallStars }} />
+        <div className="star-points star-points-clone-slow" style={{ boxShadow: stars.smallStars }} />
+      </div>
+
+      <div className="star-layer star-layer-fast">
+        <div className="star-points" style={{ boxShadow: stars.mediumStars }} />
+        <div className="star-points star-points-clone-fast" style={{ boxShadow: stars.mediumStars }} />
+      </div>
+
+      <div className="meteor m1" />
+      <div className="meteor m2" />
+      <div className="meteor m3" />
+      <div className="meteor m4" />
     </div>
   );
 };
